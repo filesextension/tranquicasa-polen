@@ -18,3 +18,12 @@ Si quieres probar sin clave, ejecuta el workflow con «sí» en prueba. Genera d
 - Pólenes: gramíneas, olivo, abedul, aliso, artemisa y ambrosía. Canarias queda fuera del dominio europeo de CAMS.
 - Niveles: umbrales de la Red Española de Aerobiología sobre la media diaria (granos/m³).
 - Fuera de la temporada de polen, Copernicus no publica estos datos y el archivo sale vacío. Es normal.
+
+# Tranquicasa · Riesgo de incendio forestal
+
+Tres veces al día, GitHub ejecuta `incendios.py`. Descarga la predicción de peligro meteorológico de incendios de AEMET (mapas de 1 km para hoy y los 7 días siguientes), calcula qué parte de los montes de cada provincia está en cada nivel y guarda el resultado en `incendios.json`. Tu web lee ese archivo y genera `tranquicasa.es/incendios/`.
+
+- No necesita clave: la descarga de AEMET es pública.
+- La primera vez descarga los límites de las provincias (Eurostat GISCO) y los guarda en `provincias.geojson`. Las siguientes veces usa ese archivo.
+- AEMET publica una predicción al día. Si no hay una nueva, el workflow termina sin cambiar nada.
+- Fuente: Agencia Estatal de Meteorología (AEMET). Su uso está autorizado citando a AEMET como autora.
