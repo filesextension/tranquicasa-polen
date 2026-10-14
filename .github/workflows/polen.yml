@@ -1,0 +1,48 @@
+name: Polen diario
+
+on:
+  schedule:
+    - cron: '20 10 * * *'
+  workflow_dispatch:
+    inputs:
+      prueba:
+        description: 'Generar datos de prueba sin descargar (sí/no)'
+        required: false
+        default: 'no'
+
+permissions:
+  contents: write
+
+jobs:
+  polen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar librerías
+        run: pip install "cdsapi>=0.7.4" xarray netCDF4 numpy
+
+      - name: Clave de Copernicus
+        if: ${{ github.event.inputs.prueba != 'sí' }}
+        env:
+          ADS_KEY: ${{ secrets.ADS_KEY }}
+        run: |
+          if [ -z "$ADS_KEY" ]; then echo "Falta el secreto ADS_KEY (mira el README)"; exit 1; fi
+          printf 'url: https://ads.atmosphere.copernicus.eu/api\nkey: %s\n' "$ADS_KEY" > ~/.cdsapirc
+
+      - name: Descargar y calcular niveles
+        run: |
+          if [ "${{ github.event.inputs.prueba }}" = "sí" ]; then python polen.py --prueba; else python polen.py; fi
+
+      - name: Guardar polen.json
+        run: |
+          git config user.name "polen-bot"
+          git config user.email "polen-bot@users.noreply.github.com"
+          git add polen.json
+          git diff --cached --quiet || git commit -m "Polen $(date -u +%Y-%m-%d)"
+          git push
