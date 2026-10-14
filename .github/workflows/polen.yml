@@ -2,7 +2,7 @@ name: Polen diario
 
 on:
   schedule:
-    - cron: '20 10 * * *'
+    - cron: '20 10 * * *'   # cada día a las 10:20 UTC (12:20 en verano, 11:20 en invierno)
   workflow_dispatch:
     inputs:
       prueba:
@@ -45,4 +45,5 @@ jobs:
           git config user.email "polen-bot@users.noreply.github.com"
           git add polen.json
           git diff --cached --quiet || git commit -m "Polen $(date -u +%Y-%m-%d)"
+          git pull --rebase --autostash
           git push
