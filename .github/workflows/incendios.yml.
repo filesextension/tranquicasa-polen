@@ -1,0 +1,37 @@
+name: Incendios diario
+
+on:
+  schedule:
+    - cron: '40 5 * * *'    # 05:40 UTC
+    - cron: '40 11 * * *'   # 11:40 UTC
+    - cron: '40 17 * * *'   # 17:40 UTC (AEMET publica una vez al día; si no hay nada nuevo, no cambia nada)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  incendios:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar librerías
+        run: pip install numpy pillow matplotlib
+
+      - name: Descargar AEMET y calcular niveles por provincia
+        run: python incendios.py
+
+      - name: Guardar incendios.json
+        run: |
+          git config user.name "incendios-bot"
+          git config user.email "incendios-bot@users.noreply.github.com"
+          git add incendios.json provincias.geojson
+          git diff --cached --quiet || git commit -m "Incendios $(date -u +%Y-%m-%d\ %H:%M)"
+          git pull --rebase --autostash
+          git push
